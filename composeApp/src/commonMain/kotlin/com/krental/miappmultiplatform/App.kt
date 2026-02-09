@@ -25,24 +25,74 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import miappmultiplatform.composeapp.generated.resources.Res
 import miappmultiplatform.composeapp.generated.resources.compose_multiplatform
 import miappmultiplatform.composeapp.generated.resources.fotomural
 
 
+/*
 val cliente = HttpClient() {
     // Aquí configuraremos cosas después
 }
+*/
+
+val cliente = HttpClient(CIO) {
+    install(ContentNegotiation) {
+        json(Json {
+            ignoreUnknownKeys = true // Esto evita que la app falle si la API envía datos extra
+        }) // Esto le dice a Ktor: "Prepárate para recibir JSON"
+    }
+}
+
+@Serializable
+data class FrasePrueba(val value: String)
 
 @Composable
 @Preview
 fun App() {
+    // AQUÍ DECLARAMOS textoInternet (esto es lo que te faltaba)
+    var textoInternet by remember { mutableStateOf("Cargando frase célebre...") }
+
+    MaterialTheme {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // El bloque que trae los datos de internet
+            LaunchedEffect(Unit) {
+                try {
+                    // Hacemos la petición a la API
+                    val response: FrasePrueba = cliente.get("https://api.chucknorris.io/jokes/random").body()
+                    textoInternet = response.value
+                } catch (e: Exception) {
+                    textoInternet = "Error de red: ${e.message}"
+                }
+            }
+
+            // 3. Mostramos el texto en tu Linux Mint
+            Text(
+                text = textoInternet,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+    /* ---------------------------------------
     // Estado para guardar lo que traigamos de internet
     var textoInternet by remember { mutableStateOf("Cargando datos...") }
 
@@ -59,8 +109,9 @@ fun App() {
 
     // Mostrar el resultado en tu ventana de Linux Mint
     Text(textoInternet)
+    */
 
-    /*
+    /* ---------------------------------------
     // 1. Creamos el estado para el color (por defecto blanco)
     var colorFondo by remember { mutableStateOf(Color.White) }
 
@@ -132,7 +183,7 @@ fun App() {
         }
     }
      */
-    /*
+    /* ---------------------------------------
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
