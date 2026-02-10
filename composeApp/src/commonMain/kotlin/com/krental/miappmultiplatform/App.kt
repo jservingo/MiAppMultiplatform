@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -77,6 +78,92 @@ data class PerroRespuesta(val message: String, val status: String)
 @Composable
 @Preview
 fun App() {
+    // Mostrar imagen de internet (con Ktor) - Perritos aleatorios
+    // Carga automática al abrir la app en Linux Mint
+
+    var imagenUrl by remember { mutableStateOf("") }
+    var estaCargando by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    // 3. Función para traer datos (Se usa en el botón y al inicio)
+    fun cargarPerrito() {
+        scope.launch {
+            estaCargando = true
+            try {
+                val respuesta: PerroRespuesta = cliente.get("https://dog.ceo/api/breeds/image/random").body()
+                imagenUrl = respuesta.message
+            } catch (e: Exception) {
+                println("Error de red: ${e.message}")
+            } finally {
+                estaCargando = false
+            }
+        }
+    }
+
+    // 4. EL TRUCO: Carga automática al abrir la app en Linux Mint
+    LaunchedEffect(Unit) {
+        cargarPerrito()
+    }
+
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "🐶 Mi App de Perritos 🐶",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Contenedor de la imagen
+                Box(
+                    modifier = Modifier
+                        .size(300.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (imagenUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = imagenUrl,
+                            contentDescription = "Perrito aleatorio",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+
+                    // Muestra el círculo de carga sobre la imagen o el fondo gris
+                    if (estaCargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(50.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Button(
+                    onClick = { cargarPerrito() },
+                    enabled = !estaCargando // Desactiva el botón mientras descarga
+                ) {
+                    Text(if (estaCargando) "Buscando..." else "¡Ver otro perrito!")
+                }
+            }
+        }
+    }
+    /* ----------------------------------------
+    // Mostrar imagen de internet (con Ktor) - Perritos aleatorios
+    // No carga la imagen al inicio, solo al hacer clic en el botón
+
     var imagenUrl by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
@@ -115,51 +202,10 @@ fun App() {
             }
         }
     }
-    /*
-    var imagenUrl by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-
-    MaterialTheme {
-        // El Surface asegura que el fondo sea visible y el contenido esté dentro
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Si la URL no está vacía, intentamos mostrar la imagen
-                if (imagenUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = imagenUrl,
-                        contentDescription = "Imagen de internet",
-                        modifier = Modifier.size(250.dp).clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    // Cuadro gris temporal mientras no hay imagen
-                    Box(modifier = Modifier.size(250.dp).background(Color.LightGray))
-                }
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                Button(onClick = {
-                    scope.launch {
-                        try {
-                            val respuesta: PerroRespuesta = cliente.get("https://dog.ceo/api/breeds/image/random").body()
-                            imagenUrl = respuesta.message
-                        } catch (e: Exception) {
-                            println("ERROR DE RED: ${e.message}")
-                        }
-                    }
-                }) {
-                    Text("Cargar Perrito")
-                }
-            }
-        }
-    }
     */
-    /* ---------------------------------------
-    // Traer datos de internet (con Ktor) - Jokes de Chuck Norris, con botón para cargar otra frase
+    /* ----------------------------------------
+    // Traer datos de internet (con Ktor) - Jokes de Chuck Norris
+    // con botón para cargar otra frase
 
     var textoInternet by remember { mutableStateOf("Presiona el botón para cargar...") }
     val scope = rememberCoroutineScope() // 1. Creamos el scope para el botón
@@ -200,6 +246,8 @@ fun App() {
     */
     /* ---------------------------------------
     // Traer datos de internet (con Ktor) - Jokes de Chuck Norris
+    // sin botón, solo al abrir la app (esto es lo que se pidió originalmente)
+
     var textoInternet by remember { mutableStateOf("Cargando frase célebre...") }
 
     MaterialTheme {
