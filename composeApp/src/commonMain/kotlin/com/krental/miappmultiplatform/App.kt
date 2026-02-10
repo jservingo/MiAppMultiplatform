@@ -38,6 +38,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import miappmultiplatform.composeapp.generated.resources.Res
 import miappmultiplatform.composeapp.generated.resources.compose_multiplatform
@@ -64,6 +65,43 @@ data class FrasePrueba(val value: String)
 @Composable
 @Preview
 fun App() {
+    var textoInternet by remember { mutableStateOf("Presiona el botón para cargar...") }
+    val scope = rememberCoroutineScope() // 1. Creamos el scope para el botón
+
+    // Función interna para traer los datos (así no repetimos código)
+    fun cargarDatos() {
+        scope.launch { // 2. Lanzamos la tarea en un hilo del Xeon
+            textoInternet = "Cargando..."
+            try {
+                val response: FrasePrueba = cliente.get("https://api.chucknorris.io/jokes/random").body()
+                textoInternet = response.value
+            } catch (e: Exception) {
+                textoInternet = "Error de red: ${e.message}"
+            }
+        }
+    }
+
+    MaterialTheme {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = textoInternet,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // 3. EL BOTÓN MÁGICO
+            Button(onClick = { cargarDatos() }) {
+                Text("Traer otra frase")
+            }
+        }
+    }
+    /* ---------------------------------------
     // AQUÍ DECLARAMOS textoInternet (esto es lo que te faltaba)
     var textoInternet by remember { mutableStateOf("Cargando frase célebre...") }
 
@@ -92,6 +130,7 @@ fun App() {
             )
         }
     }
+    */
     /* ---------------------------------------
     // Estado para guardar lo que traigamos de internet
     var textoInternet by remember { mutableStateOf("Cargando datos...") }
