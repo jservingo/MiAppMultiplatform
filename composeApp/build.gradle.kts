@@ -38,6 +38,8 @@ kotlin {
             implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
             implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
             implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+            implementation("io.coil-kt.coil3:coil-compose:3.0.0-alpha06")
+            implementation("io.coil-kt.coil3:coil-network-ktor:3.0.0-alpha06")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

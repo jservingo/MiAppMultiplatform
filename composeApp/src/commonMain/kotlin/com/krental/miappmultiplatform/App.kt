@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +26,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,7 +47,10 @@ import kotlinx.serialization.json.Json
 import miappmultiplatform.composeapp.generated.resources.Res
 import miappmultiplatform.composeapp.generated.resources.compose_multiplatform
 import miappmultiplatform.composeapp.generated.resources.fotomural
-
+import coil3.compose.AsyncImage
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.ktor.KtorNetworkFetcherFactory
 
 /*
 val cliente = HttpClient() {
@@ -59,19 +66,108 @@ val cliente = HttpClient(CIO) {
     }
 }
 
+/*
 @Serializable
 data class FrasePrueba(val value: String)
+*/
+
+@Serializable
+data class PerroRespuesta(val message: String, val status: String)
 
 @Composable
 @Preview
 fun App() {
+    var imagenUrl by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    fun cargarPerrito() {
+        scope.launch {
+            try {
+                // 1. Traemos el JSON con la URL de la imagen
+                val respuesta: PerroRespuesta = cliente.get("https://dog.ceo/api/breeds/image/random").body()
+                imagenUrl = respuesta.message
+            } catch (e: Exception) {
+                println("Error: ${e.message}")
+            }
+        }
+    }
+
+    MaterialTheme {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (imagenUrl.isNotEmpty()) {
+                // 2. Este componente descarga y renderiza la imagen de internet
+                AsyncImage(
+                    model = imagenUrl,
+                    contentDescription = "Perrito aleatorio",
+                    modifier = Modifier.size(300.dp).clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(onClick = { cargarPerrito() }) {
+                Text("¡Ver otro perrito!")
+            }
+        }
+    }
+    /*
+    var imagenUrl by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    MaterialTheme {
+        // El Surface asegura que el fondo sea visible y el contenido esté dentro
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // Si la URL no está vacía, intentamos mostrar la imagen
+                if (imagenUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = imagenUrl,
+                        contentDescription = "Imagen de internet",
+                        modifier = Modifier.size(250.dp).clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Cuadro gris temporal mientras no hay imagen
+                    Box(modifier = Modifier.size(250.dp).background(Color.LightGray))
+                }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                Button(onClick = {
+                    scope.launch {
+                        try {
+                            val respuesta: PerroRespuesta = cliente.get("https://dog.ceo/api/breeds/image/random").body()
+                            imagenUrl = respuesta.message
+                        } catch (e: Exception) {
+                            println("ERROR DE RED: ${e.message}")
+                        }
+                    }
+                }) {
+                    Text("Cargar Perrito")
+                }
+            }
+        }
+    }
+    */
+    /* ---------------------------------------
+    // Traer datos de internet (con Ktor) - Jokes de Chuck Norris, con botón para cargar otra frase
+
     var textoInternet by remember { mutableStateOf("Presiona el botón para cargar...") }
     val scope = rememberCoroutineScope() // 1. Creamos el scope para el botón
 
     // Función interna para traer los datos (así no repetimos código)
     fun cargarDatos() {
         scope.launch { // 2. Lanzamos la tarea en un hilo del Xeon
-            textoInternet = "Cargando..."
+            textoInternet = "Cargando joke de chucknorries..."
             try {
                 val response: FrasePrueba = cliente.get("https://api.chucknorris.io/jokes/random").body()
                 textoInternet = response.value
@@ -101,8 +197,9 @@ fun App() {
             }
         }
     }
+    */
     /* ---------------------------------------
-    // AQUÍ DECLARAMOS textoInternet (esto es lo que te faltaba)
+    // Traer datos de internet (con Ktor) - Jokes de Chuck Norris
     var textoInternet by remember { mutableStateOf("Cargando frase célebre...") }
 
     MaterialTheme {
@@ -132,6 +229,8 @@ fun App() {
     }
     */
     /* ---------------------------------------
+    // Traer datos de internet (con Ktor)
+
     // Estado para guardar lo que traigamos de internet
     var textoInternet by remember { mutableStateOf("Cargando datos...") }
 
@@ -149,8 +248,9 @@ fun App() {
     // Mostrar el resultado en tu ventana de Linux Mint
     Text(textoInternet)
     */
-
     /* ---------------------------------------
+    //  Cambiar background y mostrar imagen (con un botón para cambiar el color de fondo)
+
     // 1. Creamos el estado para el color (por defecto blanco)
     var colorFondo by remember { mutableStateOf(Color.White) }
 
@@ -221,8 +321,10 @@ fun App() {
             }
         }
     }
-     */
+    */
     /* ---------------------------------------
+    // Código original de tu App.kt (con algunos ajustes para que funcione)
+
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
