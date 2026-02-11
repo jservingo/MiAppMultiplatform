@@ -88,8 +88,30 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.krental.miappmultiplatform"
-            packageVersion = "1.0.0"
+            packageName = "com.krental.perritos"
+            packageVersion = "1.0.1"
         }
     }
 }
+
+/*
+compose.desktop {
+    application {
+        mainClass = "MainKt" // Tu clase de entrada
+        nativeDistributions {
+            targetFormats(
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb, // Genera un .deb (Debian/Ubuntu)
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Rpm  // Genera un .rpm (Fedora/RHEL)
+            )
+            packageName = "MiApp"
+            packageVersion = "1.0.0"
+
+            linux {
+                iconFile.set(project.file("icon.png")) // Opcional: icono de la app
+                // Puedes especificar dependencias de sistema si es necesario
+                shortcut = true
+            }
+        }
+    }
+}
+*/

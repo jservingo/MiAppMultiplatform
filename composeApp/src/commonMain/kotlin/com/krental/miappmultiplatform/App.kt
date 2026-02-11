@@ -116,7 +116,7 @@ fun App() {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "🐶 Mi App de Perritos 🐶",
+                    text = "🐶 App realizada con Android Studio 🐶",
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
